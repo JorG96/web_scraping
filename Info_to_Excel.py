@@ -13,12 +13,7 @@ file_dir = os.path.dirname(os.path.abspath(__file__))
 import requests
 from bs4 import BeautifulSoup
 
-WebLinks=['https://fincaraiz.com.co/inmueble/habitacion-en-venta/av-santander/manizales/6420388',
-          'https://fincaraiz.com.co/inmueble/habitacion-en-venta/las-nieves/bogota/4793691', 
-          'https://fincaraiz.com.co/inmueble/habitacion-en-venta/santo-domingo/cartagena/5154679',
-          'https://fincaraiz.com.co/inmueble/habitacion-en-venta/granada/cali/3763412',
-          'https://fincaraiz.com.co/proyecto-de-vivienda/baruc-76/betania/barranquilla/5355616']
-
+WebLinks=['https://www.fincaraiz.com.co/inmueble/local-en-arriendo/cota/cota/4985991']
 
 #Retrieve information using the list of links provided
 def retrieveInfo(WLinks):
