@@ -10,7 +10,7 @@ options.add_argument("--window-size=12,1200")
 # Change chromedriver path to your own
 driver = webdriver.Chrome(options=options, executable_path=r'E:\Documentos\PythonScripts\chromedriver.exe')
 # Copy and Paste principal page url
-driver.get("https://fincaraiz.com.co/apartamentos/arriendos")
+driver.get("https://fincaraiz.com.co/locales/arriendos?pagina=1")
 lnks=driver.find_elements_by_tag_name("a")
 webLinks=[]
 # traverse list

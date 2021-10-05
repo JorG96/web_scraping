@@ -15,7 +15,7 @@ soup = BeautifulSoup(page.content, "html.parser") #parsing the request
 elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
 data=json.loads(elementScript.text)
 general_info=data['query']
-props=data['props']
+props=data['props']['pageProps']
 
 
 

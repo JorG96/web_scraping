@@ -12,20 +12,39 @@ from bs4 import BeautifulSoup
 import json
 import pandas as pd
 
-file_dir = os.path.dirname(os.path.abspath(__file__))
-indexList=['Titulo','Ubicación','Ciudad','Código',
+from selenium import webdriver
+from selenium.webdriver.chrome.options import Options
+
+
+#Options for chromedriver configurations
+options = Options()
+options.headless = True
+options.add_argument("--window-size=12,1200")
+
+# Change chromedriver path to your own
+driver = webdriver.Chrome(options=options, executable_path=r'E:\Documentos\PythonScripts\chromedriver.exe')
+# Copy and Paste principal page url
+driver.get("https://fincaraiz.com.co/locales/arriendos?pagina=1")
+lnks=driver.find_elements_by_tag_name("a")
+webLinks=[]
+# traverse list
+for lnk in lnks[1:-15]:
+    # get_attribute() to get all href
+    webLinks.append(lnk.get_attribute('href'))
+
+driver.quit()
+
+file_dir = os.path.dirname((os.path.abspath(__file__)))
+columnsList=['Titulo','Ubicación','Ciudad','Código',
            'Dirección','Descripción','Área','Precio',
-           'PrecioM2','estrato','Tipo de Cliente',
-           'latitud','longitud']
-
-URLs =['https://fincaraiz.com.co/proyecto-de-vivienda/vitra-art-apartamentos/chapinero-central/bogota/6337605', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/concepcion-norte-los-alcazares/bogota/5959950', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/colina-campestre/bogota/6719340', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/conjunto-la-estancia-3/mosquera/6252232', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/mejoras-publicas/bucaramanga/6715905', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/villa-campestre/barranquilla/6716172', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/antiguo-country/bogota/6723302', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/pinar-de-suba/bogota/6725646', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/colina-campestre/bogota/6720172', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/bella-suiza/bogota/6603276', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/centro-internacional/bogota/6711747', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/loma-san-jose/sabaneta/6726216', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/chapinero-alto/bogota/6716001', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/milenta/bogota/6726310', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/santa-barbara-oriental/bogota/6636647', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/chico-navarra/bogota/6723224', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/san-cristobal-norte/bogota/6726582', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/san-martin/bogota/6726032', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/suba-centro/bogota/6498571', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/san-antonio/bogota/6725689', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/calatrava/bogota/6715999', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/pasadena/bogota/6714432', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/villa-santos/puerto-colombia/6365417', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/avenida-libano/santa-marta/6374557', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/nueva-autopista/bogota/6604931', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/bonanza/bogota/6726014', 'https://fincaraiz.com.co/inmueble/apartamento-en-arriendo/reserva-del-lago/cajica/6713909']
-
-
+           'PrecioM2','estrato','Tipo de Cliente', 'teléfono',
+           'nombre_cliente','apellido_cliente','latitud','longitud',
+           'link']
 
 def retrieveInfo(linksList):
     if linksList:
         df=pd.DataFrame()
-        for url in URLs:
+        for url in webLinks:
             page = requests.get(url)
             soup = BeautifulSoup(page.content, "html.parser") #parsing the request
             elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
@@ -34,14 +53,15 @@ def retrieveInfo(linksList):
             general_info=list(data['query'].values())
             props=data['props']['pageProps']
             
-            stringL=[
-                    props['address'],
+            stringL=[props['address'],
                     props['description']
                        ]
             segmentation=[
                     props['segmentation']['estrato'],
                     props['segmentation']['tipo_cliente'],
-                    
+                    props['contact']['phones']['call'],
+                    props['client']['firstName'],
+                    props['client']['lastName']
                 ]
             price=[
                    props['area'],
@@ -52,12 +72,12 @@ def retrieveInfo(linksList):
                     props['locations']['lat'],
                     props['locations']['lng']
                     ]
-            newSeries=pd.Series(general_info+stringL+price+segmentation+location,name=url,index=indexList)
-            df=pd.concat([df,newSeries],axis=1)
+            Newdf=pd.DataFrame([general_info+stringL+price+segmentation+location+[url]],columns=columnsList)
+            df=pd.concat([df,Newdf],axis=0)
         return df
     else:
          print("Error: Links not found")
          
-df=retrieveInfo(URLs)
+df=retrieveInfo(webLinks)
 file_path = os.path.join(file_dir, 'dataframe.xlsx')
-df.to_excel(file_path, header=True, index=True)
+df.to_excel(file_path, header=True, index=False)
