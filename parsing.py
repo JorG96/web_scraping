@@ -1,3 +1,4 @@
+#!python3
 # -*- coding: utf-8 -*-
 """
 Created on Wed Sep 29 13:27:47 2021
@@ -21,10 +22,11 @@ options = Options()
 options.headless = True
 options.add_argument("--window-size=12,1200")
 
+initialPage=input('Enter web page url:')
 # Change chromedriver path to your own
-driver = webdriver.Chrome(options=options, executable_path=r'E:\Documentos\PythonScripts\chromedriver.exe')
+driver = webdriver.Chrome(options=options, executable_path=r'.\chromedriver.exe')
 # Copy and Paste principal page url
-driver.get("https://fincaraiz.com.co/locales/arriendos?pagina=1")
+driver.get(initialPage)
 lnks=driver.find_elements_by_tag_name("a")
 webLinks=[]
 # traverse list
