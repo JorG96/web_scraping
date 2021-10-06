@@ -12,7 +12,7 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import pandas as pd
-
+import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
@@ -50,36 +50,43 @@ def retrieveInfo(linksList):
             page = requests.get(url)
             soup = BeautifulSoup(page.content, "html.parser") #parsing the request
             elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
-            data=json.loads(elementScript.text)
-            # retrieve information
-            general_info=list(data['query'].values())
-            props=data['props']['pageProps']
-            
-            stringL=[props['address'],
-                    props['description']
-                       ]
-            segmentation=[
-                    props['segmentation']['estrato'],
-                    props['segmentation']['tipo_cliente'],
-                    props['contact']['phones']['call'],
-                    props['client']['firstName'],
-                    props['client']['lastName']
-                ]
-            price=[
-                   props['area'],
-                   props['price'],
-                   props['priceM2']
-                   ]
-            location=[
-                    props['locations']['lat'],
-                    props['locations']['lng']
+            if elementScript==None:
+                continue
+            else:
+                data=json.loads(elementScript.text)
+                # retrieve information
+                general_info=list(data['query'].values())
+                props=data['props']['pageProps']
+                
+                stringL=[props['address'],
+                        props['description']
+                           ]
+                segmentation=[
+                        props['segmentation']['estrato'],
+                        props['segmentation']['tipo_cliente'],
+                        props['contact']['phones']['call'],
+                        props['client']['firstName'],
+                        props['client']['lastName']
                     ]
-            Newdf=pd.DataFrame([general_info+stringL+price+segmentation+location+[url]],columns=columnsList)
-            df=pd.concat([df,Newdf],axis=0)
+                price=[
+                       props['area'],
+                       props['price'],
+                       props['priceM2']
+                       ]
+                location=[
+                        props['locations']['lat'],
+                        props['locations']['lng']
+                        ]
+                Newdf=pd.DataFrame([general_info+stringL+price+segmentation+location+[url]],columns=columnsList)
+                df=pd.concat([df,Newdf],axis=0)
+
         return df
     else:
          print("Error: Links not found")
          
 df=retrieveInfo(webLinks)
-file_path = os.path.join(file_dir, 'dataframe.xlsx')
+time=datetime.datetime.now()
+file_name=time.strftime("%d-%m-%y_%H%M%S")
+file_path = os.path.join(file_dir, f'{file_name}.xlsx')
 df.to_excel(file_path, header=True, index=False)
+print('----Scraping finished----')
