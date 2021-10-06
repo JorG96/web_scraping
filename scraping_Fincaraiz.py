@@ -1,4 +1,4 @@
-#!python3
+#!python
 # -*- coding: utf-8 -*-
 """
 Created on Wed Sep 29 13:27:47 2021
@@ -16,36 +16,10 @@ import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-
-#Options for chromedriver configurations
-options = Options()
-options.headless = True
-options.add_argument("--window-size=12,1200")
-
-initialPage=input('Enter web page url:')
-# Change chromedriver path to your own
-driver = webdriver.Chrome(options=options, executable_path=r'.\chromedriver.exe')
-# Copy and Paste principal page url
-driver.get(initialPage)
-lnks=driver.find_elements_by_tag_name("a")
-webLinks=[]
-# traverse list
-for lnk in lnks[1:-15]:
-    # get_attribute() to get all href
-    webLinks.append(lnk.get_attribute('href'))
-
-driver.quit()
-
-file_dir = os.path.dirname((os.path.abspath(__file__)))
-columnsList=['Titulo','Ubicación','Ciudad','Código',
-           'Dirección','Descripción','Área','Precio',
-           'PrecioM2','estrato','Tipo de Cliente', 'teléfono',
-           'nombre_cliente','apellido_cliente','latitud','longitud',
-           'link']
-
 def retrieveInfo(linksList):
     if linksList:
         df=pd.DataFrame()
+        print('retrieving information... please wait')
         for url in webLinks:
             page = requests.get(url)
             soup = BeautifulSoup(page.content, "html.parser") #parsing the request
@@ -84,9 +58,48 @@ def retrieveInfo(linksList):
     else:
          print("Error: Links not found")
          
+def inputNumber(message):
+  while True:
+    try:
+       userInput = int(input(message))       
+    except ValueError:
+       print("invalid page number! Try again.")
+       continue
+    else:
+       return userInput 
+       break 
+#Options for chromedriver configurations
+options = Options()
+options.headless = True
+options.add_argument("--window-size=12,1200")
+initialPage=input('Enter web page url:')
+page_number=inputNumber('Enter number of pages to scrap:')
+webLinks=[]
+# Change chromedriver path to your own
+driver = webdriver.Chrome(options=options, executable_path=r'.\chromedriver.exe')
+for n in range(1,page_number+1):
+    print(f'extracting links from page {n}...' )
+    # Copy and Paste principal page url
+    driver.get(initialPage+r'?pagina='+str(n))
+    lnks=driver.find_elements_by_tag_name("a")
+    # traverse list
+    for lnk in lnks[1:-15]:
+        # get_attribute() to get all href
+        webLinks.append(lnk.get_attribute('href'))
+print('links extracted')
+driver.quit()
+
+file_dir = os.path.dirname((os.path.abspath(__file__)))
+columnsList=['Titulo','Ubicación','Ciudad','Código',
+           'Dirección','Descripción','Área','Precio',
+           'PrecioM2','estrato','Tipo de Cliente', 'teléfono',
+           'nombre_cliente','apellido_cliente','latitud','longitud',
+           'link']
+
 df=retrieveInfo(webLinks)
+print('creating data file...')
 time=datetime.datetime.now()
 file_name=time.strftime("%d-%m-%y_%H%M%S")
 file_path = os.path.join(file_dir, f'{file_name}.xlsx')
 df.to_excel(file_path, header=True, index=False)
-print('----Scraping finished----')
+print('--------SCRAPING FINISHED-------')
