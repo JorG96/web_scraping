@@ -3,7 +3,8 @@ from bs4 import BeautifulSoup
 import pandas as pd
 import json
 
-def retrieveInfo(linksList):
+
+def retrieveInfo(linksList,dataColumns):
     if linksList:
         df=pd.DataFrame()
         print('retrieving information... please wait')
@@ -38,7 +39,7 @@ def retrieveInfo(linksList):
                         props['locations']['lat'],
                         props['locations']['lng']
                         ]
-                Newdf=pd.DataFrame([general_info+stringL+price+segmentation+location+[url]],columns=columnsList)
+                Newdf=pd.DataFrame([general_info+stringL+price+segmentation+location+[url]],columns=dataColumns)
                 df=pd.concat([df,Newdf],axis=0)
 
         return df
