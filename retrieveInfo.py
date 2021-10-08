@@ -7,7 +7,7 @@ def retrieveInfo(linksList):
     if linksList:
         df=pd.DataFrame()
         print('retrieving information... please wait')
-        for url in webLinks:
+        for url in linksList:
             page = requests.get(url)
             soup = BeautifulSoup(page.content, "html.parser") #parsing the request
             elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
