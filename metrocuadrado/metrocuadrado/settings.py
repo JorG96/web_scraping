@@ -18,7 +18,11 @@ NEWSPIDER_MODULE = 'metrocuadrado.spiders'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
-
+# Desired file format
+FEED_FORMAT = "csv"
+ 
+# Name of the file where data extracted is stored
+FEED_URI = "items.csv"
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
 
@@ -62,9 +66,9 @@ ROBOTSTXT_OBEY = True
 
 # Configure item pipelines
 # See https://docs.scrapy.org/en/latest/topics/item-pipeline.html
-#ITEM_PIPELINES = {
-#    'metrocuadrado.pipelines.MetrocuadradoPipeline': 300,
-#}
+ITEM_PIPELINES = {
+   'metrocuadrado.pipelines.MetrocuadradoPipeline': 300,
+}
 
 # Enable and configure the AutoThrottle extension (disabled by default)
 # See https://docs.scrapy.org/en/latest/topics/autothrottle.html

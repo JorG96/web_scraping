@@ -5,45 +5,24 @@ Created on Thu Oct 14 09:06:20 2021
 @author: ASUS
 """
 
-import os
 import requests
+import random
 from bs4 import BeautifulSoup
-import json
-import pandas as pd
-import datetime
-from selenium import webdriver
-from selenium.webdriver.chrome.options import Options
+user_agent_list = [
+'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Safari/605.1.15',
+'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0',
+'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
+'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0',
+'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
+]
+url = 'https://www.metrocuadrado.com/inmueble/arriendo-apartamento-bogota-chico-4-habitaciones-5-banos-3-garajes/2162-M3108906'
 
+#Pick a random user agent
+user_agent= random.choice(user_agent_list)
+#Set the headers 
+headers = {'User-Agent': user_agent}
+#Make the request
+response = requests.get(url,headers=headers)
+soup = BeautifulSoup(response.content, "html.parser") #parsing the request
 
-page = requests.get('https://www.metrocuadrado.com/inmueble/arriendo-local-comercial-bogota-acevedo-tejada-1-banos/4903-M2875462')
-html = browser.page_source
-
-
-# data=json.loads(elementScript.text)
-# retrieve information
-# general_info=list(data['query'].values())
-# props=data['props']['pageProps']
-
-# stringL=[props['address'],
-#         props['description']
-#            ]
-# segmentation=[
-#         props['segmentation']['estrato'],
-#         props['segmentation']['tipo_cliente'],
-#         props['contact']['phones']['call'],
-#         props['client']['firstName'],
-#         props['client']['lastName']
-#     ]
-# price=[
-#        props['area'],
-#        props['price'],
-#        props['priceM2']
-#        ]
-# location=[
-#         props['locations']['lat'],
-#         props['locations']['lng']
-#         ]
-# Newdf=pd.DataFrame([general_info+stringL+price+segmentation+location+[url]])
-# df=pd.concat([df,Newdf],axis=0)
-
-columnsList=[]
+print("-------------------")
