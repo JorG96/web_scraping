@@ -14,15 +14,15 @@ NEWSPIDER_MODULE = 'metrocuadrado.spiders'
 
 
 # Crawl responsibly by identifying yourself (and your website) on the user-agent
-#USER_AGENT = 'metrocuadrado (+http://www.yourdomain.com)'
+USER_AGENT = 'metrocuadrado (+http://www.yourdomain.com)'
 
 # Obey robots.txt rules
 ROBOTSTXT_OBEY = True
 # Desired file format
-FEED_FORMAT = "csv"
+# FEED_FORMAT = "csv"
  
 # Name of the file where data extracted is stored
-FEED_URI = "items.csv"
+# FEED_URI = "items.csv"
 # Configure maximum concurrent requests performed by Scrapy (default: 16)
 #CONCURRENT_REQUESTS = 32
 
