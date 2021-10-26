@@ -14,19 +14,21 @@ import json
 options = Options()
 options.headless = True
 options.add_argument("--window-size=12,1200")
-initialPage='https://www.metrocuadrado.com/inmueble/venta-apartamento-bogota-bellavista-3-habitaciones-4-banos-3-garajes/10366-6646'
+initialPage='https://www.metrocuadrado.com/bodega/arriendo/barranquilla/'
 webLinks=[]
 # Change chromedriver path to your own
 driver = webdriver.Chrome(options=options, executable_path=r'.\chromedriver.exe')
 # Copy and Paste principal page url
 driver.get(initialPage)
-lnks=driver.page_source()
-print(lnks)
-# traverse list
 
-    
+# traverse list
+    # Copy and Paste principal page url
+container=driver.find_elements_by_xpath("/html/body/div[2]/div/div/div[2]/div[2]/div[2]/div[2]/ul[1]/li/div/ul/li[1]/a")
+# traverse list
+for lnk in container:
+    # get_attribute() to get all href
+    webLinks.append(lnk.get_attribute('href'))
+
 driver.quit()
 
 
-# usnig pd.Series.str.contains() function with default parameters
-# search=df[0].str.contains("546-94228", case=True, flags=0, na=None, regex=True)
