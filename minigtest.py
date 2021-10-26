@@ -37,35 +37,34 @@ response = requests.get(url,headers=headers)
 soup = BeautifulSoup(response.content, "html.parser") #parsing the request
 df=pd.DataFrame()
 print('retrieving information... please wait')
-# links=soup.find_all(has_href)
-# elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
-# data=json.loads(elementScript.text)
+elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
+data=json.loads(elementScript.text)
 
-# props=data['props']['initialState']['realestate']['basic']
+props=data['props']['initialState']['realestate']['basic']
 
-# propertyId=[props['propertyId']]
+propertyId=[props['propertyId']]
 
-# info=[
+info=[
      
-#     props['propertyState'],
-#     props['stratum'],
-#     props['contactPhone'],
-#     props['neighborhood'],
-#     props['businessType'],
-#     props['comment'],
-#     props['builtTime'],
-# ]
-# price=[
-#    props['area'],
-#    props['areac'],
-#    props['salePrice'],
-#    props['rentPrice'],
-#    ]
-# location=[
-#     props['coordinates']['lat'],
-#     props['coordinates']['lon'],
-#     props['city']['nombre']
-#     ]
-# Newdf=pd.DataFrame([propertyId+info+price+location+[url]],columns=dataColumns)
+    props['propertyState'],
+    props['stratum'],
+    props['contactPhone'],
+    props['neighborhood'],
+    props['businessType'],
+    props['comment'],
+    props['builtTime'],
+]
+price=[
+    props['area'],
+    props['areac'],
+    props['salePrice'],
+    props['rentPrice'],
+    ]
+location=[
+    props['coordinates']['lat'],
+    props['coordinates']['lon'],
+    props['city']['nombre']
+    ]
+Newdf=pd.DataFrame([propertyId+info+price+location+[url]],columns=dataColumns)
 
-# print("-------------------")
+print("-------------------")
