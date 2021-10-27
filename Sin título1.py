@@ -14,16 +14,16 @@ import json
 
 options = Options()
 options.headless = False
-# options.add_argument("--window-size=12,1200")
-options.add_argument('start-maximized')
-initialPage='https://www.metrocuadrado.com/bodega/arriendo/barranquilla/'
+options.add_argument("--window-size=12,1200")
+# options.add_argument('start-maximized')
+initialPage='https://www.metrocuadrado.com/oficina-local/arriendo/'
 webLinks=[]
 # Change chromedriver path to your own
 driver = webdriver.Chrome(options=options, executable_path=r'.\chromedriver.exe')
 driver.maximize_window()
 # Copy and Paste principal page url
 driver.get(initialPage)
-page_number=2
+page_number=5
 n=1
 while n<=page_number:
     print("extracting links from page: "+str(n))
@@ -34,10 +34,15 @@ while n<=page_number:
     for lnk in container:
         # get_attribute() to get all href
         webLinks.append(lnk.get_attribute('href'))
-    next_button=driver.find_element_by_xpath('/html/body/div[2]/div/div/div[2]/div[2]/div[2]/div[2]/ul[2]/li[12]/a')
+    if n<3:
+        next_button=driver.find_element_by_xpath('/html/body/div[2]/div/div/div[2]/div[2]/div[2]/div[2]/ul[2]/li[12]/a')
+    else:
+        next_button=driver.find_element_by_xpath('/html/body/div[2]/div/div/div[2]/div[2]/div[2]/div[2]/ul[2]/li[12]/a')
+
     driver.execute_script("arguments[0].scrollIntoView();",next_button)
     next_button.click()
-    driver.implicitly_wait(10)
+    print('please wait...')
+    driver.implicitly_wait(600)
     n+=1
 
 

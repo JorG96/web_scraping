@@ -25,46 +25,52 @@ dataColumns=['IDpropiedad','estado','estrato','telefono',
              'precio de renta', 'precio de venta','latitud',
              'longitud','ciudad','url']
 
-url = 'https://www.metrocuadrado.com/bodega/arriendo/barranquilla/'
+url = ['https://www.metrocuadrado.com/inmueble/arriendo-local-comercial-bogota-veraguas/164-M3120309',
+        'https://www.metrocuadrado.com/inmueble/arriendo-oficina-medellin-san-diego-1-banos/10280-M3065213'
+        
+        ]
+
 Weblinks=[]
 
-#Pick a random user agent
-user_agent= random.choice(user_agent_list)
-#Set the headers 
-headers = {'User-Agent': user_agent}
-#Make the request
-response = requests.get(url,headers=headers)
-soup = BeautifulSoup(response.content, "html.parser") #parsing the request
-df=pd.DataFrame()
-print('retrieving information... please wait')
-elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
-data=json.loads(elementScript.text)
-
-props=data['props']['initialState']['realestate']['basic']
-
-propertyId=[props['propertyId']]
-
-info=[
-     
-    props['propertyState'],
-    props['stratum'],
-    props['contactPhone'],
-    props['neighborhood'],
-    props['businessType'],
-    props['comment'],
-    props['builtTime'],
-]
-price=[
-    props['area'],
-    props['areac'],
-    props['salePrice'],
-    props['rentPrice'],
+for i in url:
+    
+    #Pick a random user agent
+    user_agent= random.choice(user_agent_list)
+    #Set the headers 
+    headers = {'User-Agent': user_agent}
+    #Make the request
+    response = requests.get(url,headers=headers)
+    soup = BeautifulSoup(response.content, "html.parser") #parsing the request
+    df=pd.DataFrame()
+    print('retrieving information... please wait')
+    elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
+    data=json.loads(elementScript.text)
+    
+    props=data['props']['initialState']['realestate']['basic']
+    
+    propertyId=[props['propertyId']]
+    
+    info=[
+         
+        props['propertyState'],
+        props['stratum'],
+        props['contactPhone'],
+        props['neighborhood'],
+        props['businessType'],
+        props['comment'],
+        props['builtTime'],
     ]
-location=[
-    props['coordinates']['lat'],
-    props['coordinates']['lon'],
-    props['city']['nombre']
-    ]
-Newdf=pd.DataFrame([propertyId+info+price+location+[url]],columns=dataColumns)
-
+    price=[
+        props['area'],
+        props['areac'],
+        props['salePrice'],
+        props['rentPrice'],
+        ]
+    location=[
+        props['coordinates']['lat'],
+        props['coordinates']['lon'],
+        props['city']['nombre']
+        ]
+    Newdf=pd.DataFrame([propertyId+info+price+location+[url]],columns=dataColumns)
+    df=pd.concat([df,Newdf],axis=0)
 print("-------------------")
