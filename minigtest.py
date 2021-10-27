@@ -10,7 +10,7 @@ import random
 from bs4 import BeautifulSoup
 import pandas as pd
 import json
-
+import time
 
 user_agent_list = [
 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Safari/605.1.15',
@@ -25,15 +25,18 @@ dataColumns=['IDpropiedad','estado','estrato','telefono',
              'precio de renta', 'precio de venta','latitud',
              'longitud','ciudad','url']
 
-url = ['https://www.metrocuadrado.com/inmueble/arriendo-local-comercial-bogota-veraguas/164-M3120309',
+urls = ['https://www.metrocuadrado.com/inmueble/arriendo-local-comercial-bogota-veraguas/164-M3120309',
         'https://www.metrocuadrado.com/inmueble/arriendo-oficina-medellin-san-diego-1-banos/10280-M3065213'
-        
+
         ]
 
 Weblinks=[]
+df=pd.DataFrame()
 
-for i in url:
-    
+for url in urls:
+    sleep_time=random.uniform(0.5, 2.0)
+    time.sleep(sleep_time)
+    print(sleep_time)
     #Pick a random user agent
     user_agent= random.choice(user_agent_list)
     #Set the headers 
@@ -41,11 +44,10 @@ for i in url:
     #Make the request
     response = requests.get(url,headers=headers)
     soup = BeautifulSoup(response.content, "html.parser") #parsing the request
-    df=pd.DataFrame()
+    
     print('retrieving information... please wait')
     elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
     data=json.loads(elementScript.text)
-    
     props=data['props']['initialState']['realestate']['basic']
     
     propertyId=[props['propertyId']]
@@ -71,6 +73,7 @@ for i in url:
         props['coordinates']['lon'],
         props['city']['nombre']
         ]
+    random
     Newdf=pd.DataFrame([propertyId+info+price+location+[url]],columns=dataColumns)
     df=pd.concat([df,Newdf],axis=0)
 print("-------------------")

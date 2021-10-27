@@ -23,7 +23,7 @@ driver = webdriver.Chrome(options=options, executable_path=r'.\chromedriver.exe'
 driver.maximize_window()
 # Copy and Paste principal page url
 driver.get(initialPage)
-page_number=5
+page_number=2
 n=1
 while n<=page_number:
     print("extracting links from page: "+str(n))
