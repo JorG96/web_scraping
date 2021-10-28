@@ -8,55 +8,89 @@ Created on Wed Sep 29 13:27:47 2021
 
 
 import os
-import requests
-from bs4 import BeautifulSoup
-import json
-import pandas as pd
 import datetime
+import requests
+import random
+from bs4 import BeautifulSoup
+import pandas as pd
+import json
+import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-def retrieveInfo(linksList,dataColumns):
-    if linksList:
-        df=pd.DataFrame()
-        print('retrieving information... please wait')
-        for url in linksList:
-            page = requests.get(url)
-            soup = BeautifulSoup(page.content, "html.parser") #parsing the request
+user_agent_list = [
+'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Safari/605.1.15',
+'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0',
+'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
+'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0',
+'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
+]
+dataColumns=['IDpropiedad','estado','estrato','telefono',
+             'barrio','tipo de negocio','descripción',
+             'antiguedad','ciudad','area construida',
+             'precio de renta', 'precio de venta','latitud',
+             'longitud','area privada','url']
+
+def retrieveInfo(links,columns):
+    df=pd.DataFrame()
+    if links:
+        for url in urls:
+            sleep_time=random.uniform(1.1, 1.8)
+            time.sleep(sleep_time)
+            #Pick a random user agent
+            user_agent= random.choice(user_agent_list)
+            #Set the headers 
+            headers = {'User-Agent': user_agent}
+            #Make the request
+            try:
+                response = requests.get(url,headers=headers)
+            except requests.exceptions.RequestException as e:
+                # A serious problem happened, like an SSLError or InvalidURL
+                print(f"Error: {e}")
+            soup = BeautifulSoup(response.content, "html.parser") #parsing the request
             elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
+
             if elementScript==None:
                 continue
             else:
+                print(f'retrieving information from {url}... please wait')
                 data=json.loads(elementScript.text)
-                # retrieve information
-                general_info=list(data['query'].values())
-                props=data['props']['pageProps']
+                props=data['props']['initialState']['realestate']['basic']
                 
-                stringL=[props['address'],
-                        props['description']
-                           ]
-                segmentation=[
-                        props['segmentation']['estrato'],
-                        props['segmentation']['tipo_cliente'],
-                        props['contact']['phones']['call'],
-                        props['client']['firstName'],
-                        props['client']['lastName']
+                propertyId=[props['propertyId']]
+                
+            try:
+                info=[
+                props['propertyState'],
+                props['stratum'],
+                props['contactPhone'],
+                props['neighborhood'],
+                props['businessType'],
+                props['comment'],
+                props['builtTime'],
+                props['city']['nombre']
                     ]
+                
                 price=[
-                       props['area'],
-                       props['price'],
-                       props['priceM2']
-                       ]
+                props['area'],
+                props['areac'],
+                props['salePrice'],
+                props['rentPrice'],
+                    ]
+            
                 location=[
-                        props['locations']['lat'],
-                        props['locations']['lng']
+                props['coordinates']['lat'],
+                props['coordinates']['lon'],
                         ]
-                Newdf=pd.DataFrame([general_info+stringL+price+segmentation+location+[url]],columns=dataColumns)
-                df=pd.concat([df,Newdf],axis=0)
+            except:
+                pass
+                print(f"Failed to retreive info from {url}")
 
+            Newdf=pd.DataFrame([propertyId+info+price+location+[url]],columns=dataColumns)
+            df=pd.concat([df,Newdf],axis=0)
         return df
     else:
-         print("Error: Links not found")
+        print('No links found')
          
 def inputNumber(message):
   while True:
@@ -68,38 +102,49 @@ def inputNumber(message):
     else:
        return userInput 
        break 
-#Options for chromedriver configurations
-options = Options()
-options.headless = True
-options.add_argument("--window-size=12,1200")
-initialPage=input('Enter web page url:')
-page_number=inputNumber('Enter number of pages to scrap:')
-webLinks=[]
-# Change chromedriver path to your own
-driver = webdriver.Chrome(options=options, executable_path=r'.\chromedriver.exe')
-for n in range(1,page_number+1):
-    print(f'extracting links from page {n}...' )
-    # Copy and Paste principal page url
-    driver.get(initialPage+r'?pagina='+str(n))
-    lnks=driver.find_elements_by_tag_name("a")
-    # traverse list
-    for lnk in lnks[1:-15]:
-        # get_attribute() to get all href
-        webLinks.append(lnk.get_attribute('href'))
-print('links extracted')
-driver.quit()
+
+def automateNav(initialPage,page_number=1):
+    webLinks=[]
+    options = Options()
+    options.headless = False
+    options.add_argument("--window-size=12,1200")
+    # options.add_argument('start-maximized')
+    driver = webdriver.Chrome(options=options, executable_path=r'.\chromedriver.exe')
+    driver.maximize_window()
+    driver.get(initialPage)
+    n=1
+    while n<=page_number:
+        driver.implicitly_wait(2)
+        print("extracting links from page: "+str(n))
+        # traverse list
+            # Copy and Paste principal page url
+        container=driver.find_elements_by_xpath("/html/body/div[2]/div/div/div[2]/div[2]/div[2]/div[2]/ul[1]/li/div/ul/li[1]/a")
+        # traverse list
+        for lnk in container:
+            # get_attribute() to get all href
+            webLinks.append(lnk.get_attribute('href'))
+        if n<3:
+            next_button=driver.find_element_by_xpath('/html/body/div[2]/div/div/div[2]/div[2]/div[2]/div[2]/ul[2]/li[12]/a')
+        else:
+            next_button=driver.find_element_by_xpath('/html/body/div[2]/div/div/div[2]/div[2]/div[2]/div[2]/ul[2]/li[12]/a')
+    
+        driver.execute_script("arguments[0].scrollIntoView();",next_button)
+        next_button.click()
+        print('please wait...')
+        
+        n+=1
+    
+    driver.quit()
+    return webLinks
 
 file_dir = os.path.dirname((os.path.abspath(__file__)))
-columnsList=['Titulo','Ubicación','Ciudad','Código',
-           'Dirección','Descripción','Área','Precio',
-           'PrecioM2','estrato','Tipo de Cliente', 'teléfono',
-           'nombre_cliente','apellido_cliente','latitud','longitud',
-           'link']
-
-df=retrieveInfo(webLinks,columnsList)
+init_Page=input('Enter web page url:')
+page_number= inputNumber('Enter number of pages to scrap:')
+urls= automateNav(init_Page,page_number)
+df=retrieveInfo(urls,dataColumns)
 print('creating data file...')
-time=datetime.datetime.now()
-file_name=time.strftime("%d-%m-%y_%H%M%S")
+actual_time=datetime.datetime.now()
+file_name=actual_time.strftime("%d-%m-%y_%H%M%S")
 file_path = os.path.join(file_dir, f'{file_name}.xlsx')
 df.to_excel(file_path, header=True, index=False)
 print('--------SCRAP FINISHED-------')

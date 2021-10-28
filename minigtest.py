@@ -25,55 +25,70 @@ dataColumns=['IDpropiedad','estado','estrato','telefono',
              'precio de renta', 'precio de venta','latitud',
              'longitud','ciudad','url']
 
-urls = ['https://www.metrocuadrado.com/inmueble/arriendo-local-comercial-bogota-veraguas/164-M3120309',
-        'https://www.metrocuadrado.com/inmueble/arriendo-oficina-medellin-san-diego-1-banos/10280-M3065213'
+urls = ['https://www.metrocuadble/arriendo-local-comercial-bogota-veraguas/164-M3120309',
+        'https://www.metrocuadm/inmueble/arriendo-oficina-medellin-san-diego-1-banos/10280-M3065213'
 
         ]
 
 Weblinks=[]
-df=pd.DataFrame()
 
-for url in urls:
-    sleep_time=random.uniform(0.5, 2.0)
-    time.sleep(sleep_time)
-    print(sleep_time)
-    #Pick a random user agent
-    user_agent= random.choice(user_agent_list)
-    #Set the headers 
-    headers = {'User-Agent': user_agent}
-    #Make the request
-    response = requests.get(url,headers=headers)
-    soup = BeautifulSoup(response.content, "html.parser") #parsing the request
-    
-    print('retrieving information... please wait')
-    elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
-    data=json.loads(elementScript.text)
-    props=data['props']['initialState']['realestate']['basic']
-    
-    propertyId=[props['propertyId']]
-    
-    info=[
-         
-        props['propertyState'],
-        props['stratum'],
-        props['contactPhone'],
-        props['neighborhood'],
-        props['businessType'],
-        props['comment'],
-        props['builtTime'],
-    ]
-    price=[
-        props['area'],
-        props['areac'],
-        props['salePrice'],
-        props['rentPrice'],
-        ]
-    location=[
-        props['coordinates']['lat'],
-        props['coordinates']['lon'],
-        props['city']['nombre']
-        ]
-    random
-    Newdf=pd.DataFrame([propertyId+info+price+location+[url]],columns=dataColumns)
-    df=pd.concat([df,Newdf],axis=0)
-print("-------------------")
+def retrieveInfo(links,columns):
+    df=pd.DataFrame()
+    if links:
+        for url in urls:
+            sleep_time=random.uniform(1.1, 2.0)
+            time.sleep(sleep_time)
+            #Pick a random user agent
+            user_agent= random.choice(user_agent_list)
+            #Set the headers 
+            headers = {'User-Agent': user_agent}
+            #Make the request
+            try:
+                response = requests.get(url,headers=headers)
+            except requests.exceptions.RequestException as e:
+                # A serious problem happened, like an SSLError or InvalidURL
+                print("Error: {}".format(e))
+                return "Error: {}".format(e)
+            soup = BeautifulSoup(response.content, "html.parser") #parsing the request
+            
+            print('retrieving information... please wait')
+            elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
+            data=json.loads(elementScript.text)
+            props=data['props']['initialState']['realestate']['basic']
+            
+            propertyId=[props['propertyId']]
+            try:
+                info=[
+                props['propertyState'],
+                props['stratum'],
+                props['contactPhone'],
+                props['neighborhood'],
+                props['businessType'],
+                props['comment'],
+                props['builtTime'],
+                props['city']['nombre']
+                    ]
+                
+                price=[
+                props['area'],
+                props['areac'],
+                props['salePrice'],
+                props['rentPrice'],
+                    ]
+            
+                location=[
+                props['coordinates']['lat'],
+                props['coordinates']['lon'],
+                        ]
+            except:
+                pass
+                print(f"error retrieving info from {url}")
+
+
+            Newdf=pd.DataFrame([propertyId+info+price+location+[url]],columns=dataColumns)
+            df=pd.concat([df,Newdf],axis=0)
+    else:
+        print('No links found')
+        
+retrieveInfo(urls, dataColumns)
+print("--------SCRAPING FINISHED-----------")
