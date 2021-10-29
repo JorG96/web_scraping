@@ -25,7 +25,8 @@ user_agent_list = [
 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0',
 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
 ]
-dataColumns=['IDpropiedad','estado','estrato','telefono',
+
+dataColumns=['IDpropiedad','estado','mercado','estrato','telefono',
              'barrio','tipo de negocio','descripción',
              'antiguedad','ciudad','area construida',
              'precio de renta', 'precio de venta','latitud',
@@ -58,10 +59,12 @@ def retrieveInfo(links,columns):
                 props=data['props']['initialState']['realestate']['basic']
                 
                 propertyId=[props['propertyId']]
-                
+            
+            info,price,location=[None]*9,[None]*4,[None]*2
             try:
                 info=[
                 props['propertyState'],
+                props['breadcrumb']['links'][0]['text'],
                 props['stratum'],
                 props['contactPhone'],
                 props['neighborhood'],
