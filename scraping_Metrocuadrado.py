@@ -36,6 +36,7 @@ def retrieveInfo(links,columns):
     df=pd.DataFrame()
     if links:
         for url in urls:
+            propertyId,info,price,location=[None],[None]*9,[None]*4,[None]*2
             sleep_time=random.uniform(1.1, 1.8)
             time.sleep(sleep_time)
             #Pick a random user agent
@@ -58,10 +59,11 @@ def retrieveInfo(links,columns):
                 data=json.loads(elementScript.text)
                 props=data['props']['initialState']['realestate']['basic']
                 
-                propertyId=[props['propertyId']]
             
-            info,price,location=[None]*9,[None]*4,[None]*2
+                
             try:
+                propertyId=[props['propertyId']]
+
                 info=[
                 props['propertyState'],
                 props['breadcrumb']['links'][0]['text'],
