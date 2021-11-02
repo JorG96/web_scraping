@@ -49,6 +49,7 @@ def retrieveInfo(links,columns):
             except requests.exceptions.RequestException as e:
                 # A serious problem happened, like an SSLError or InvalidURL
                 print(f"Error: {e}")
+                continue
             soup = BeautifulSoup(response.content, "html.parser") #parsing the request
             elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
 
@@ -59,40 +60,38 @@ def retrieveInfo(links,columns):
                 data=json.loads(elementScript.text)
                 props=data['props']['initialState']['realestate']['basic']
                 
-            
-                
-            try:
-                propertyId=[props['propertyId']]
-
-                info=[
-                props['propertyState'],
-                props['breadcrumb']['links'][0]['text'],
-                props['stratum'],
-                props['contactPhone'],
-                props['neighborhood'],
-                props['businessType'],
-                props['comment'],
-                props['builtTime'],
-                props['city']['nombre']
-                    ]
-                
-                price=[
-                props['area'],
-                props['areac'],
-                props['salePrice'],
-                props['rentPrice'],
-                    ]
-            
-                location=[
-                props['coordinates']['lat'],
-                props['coordinates']['lon'],
+                try:
+                    propertyId=[props['propertyId']]
+    
+                    info=[
+                    props['propertyState'],
+                    props['breadcrumb']['links'][0]['text'],
+                    props['stratum'],
+                    props['contactPhone'],
+                    props['neighborhood'],
+                    props['businessType'],
+                    props['comment'],
+                    props['builtTime'],
+                    props['city']['nombre']
                         ]
-            except:
-                pass
-                print(f"Failed to retreive info from {url}")
+                    
+                    price=[
+                    props['area'],
+                    props['areac'],
+                    props['salePrice'],
+                    props['rentPrice'],
+                        ]
+                
+                    location=[
+                    props['coordinates']['lat'],
+                    props['coordinates']['lon'],
+                            ]
+                except:
+                    pass
+                    print(f"Failed to retreive info from {url}")
 
-            Newdf=pd.DataFrame([propertyId+info+price+location+[url]],columns=dataColumns)
-            df=pd.concat([df,Newdf],axis=0)
+                Newdf=pd.DataFrame([propertyId+info+price+location+[url]],columns=dataColumns)
+                df=pd.concat([df,Newdf],axis=0)
         return df
     else:
         print('No links found')
