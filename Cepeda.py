@@ -12,11 +12,12 @@ import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
-dataColumns=['ubicacion','codigo','habitaciones','baños','superficie','Precio de Venta','Precio de Renta','latitud','longitud','url']
+dataColumns=['codigo','ubicacion','habitaciones','baños','superficie','Precio de Venta','Precio de Renta','latitud','longitud','url']
 
 def automateNav(initialPage,page_number=1):
     def retrieveInfo(url):
         driver.get(url)
+        print(f'retrieving information from {url}... please wait')
         location=driver.find_element_by_id("det-title").text
         code=driver.find_element_by_id("det-code").text
         bed=driver.find_element_by_id("det-nb-bed").text
@@ -77,12 +78,22 @@ def parsePrice(price):
         return value[-1]
     else:
         return price
+    
+def inputNumber(message):
+  while True:
+    try:
+       userInput = int(input(message))       
+    except ValueError:
+       print("invalid page number! Try again.")
+       continue
+    else:
+       return userInput 
+       break 
 
 
 file_dir = os.path.dirname((os.path.abspath(__file__)))
 init_Page=input('Enter web page url:')
 page_number= inputNumber('Enter number of pages to scrap:')
-urls= automateNav(init_Page,page_number)
 df=automateNav(init_Page,page_number)
 print('creating data file...')
 actual_time=datetime.datetime.now()
