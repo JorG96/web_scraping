@@ -1,27 +1,39 @@
 # -*- coding: utf-8 -*-
 """
-Created on Tue Dec  7 17:09:22 2021
+Created on Tue Dec  6 20:09:22 2021
 
 @author: ASUS
 """
-import requests
-from bs4 import BeautifulSoup
-import time
+import os
+import datetime
 import random
-
-
+import pandas as pd
+import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-url="https://www.cepedaycia.com/inmueble/?Inmueble=5919"
+
+dataColumns=['ubicacion','codigo','habitaciones','baños','superficie','Precio de Venta','Precio de Renta','latitud','longitud','url']
 
 def automateNav(initialPage,page_number=1):
+    def retrieveInfo(url):
+        driver.get(url)
+        location=driver.find_element_by_id("det-title").text
+        code=driver.find_element_by_id("det-code").text
+        bed=driver.find_element_by_id("det-nb-bed").text
+        bath=driver.find_element_by_id("det-nb-bath").text
+        superficie=driver.find_element_by_id("det-area").text
+        venta=parsePrice(driver.find_element_by_id("det-venta-price").text)
+        renta=parsePrice(driver.find_element_by_id("det-arriendo-price").text)
+        info=[code,location,bed,bath,superficie,venta,renta]
+        return info
+
     webLinks=[]
     options = Options()
     options.headless = False
     options.add_argument("--window-size=12,1200")
     # options.add_argument('start-maximized')
     driver = webdriver.Chrome(options=options, executable_path=r'.\chromedriver.exe')
-    driver.maximize_window()
+    driver.minimize_window()
     driver.get(initialPage)
     n=1
     while n<=page_number:
@@ -45,9 +57,19 @@ def automateNav(initialPage,page_number=1):
         print('please wait...')
         
         n+=1
-    
+    df=pd.DataFrame()
+    for url in webLinks:
+        try:
+            information=retrieveInfo(url)
+        except:
+            # A serious problem happened, like an SSLError or InvalidURL
+            print(f"Error retrieving information from {url}")
+            continue
+
+        Newdf=pd.DataFrame([information+['lat','lng']+[url]],columns=dataColumns)
+        df=pd.concat([df,Newdf],axis=0)
     driver.quit()
-    return webLinks
+    return df
 
 def parsePrice(price):
     if '$' in price:
@@ -57,17 +79,14 @@ def parsePrice(price):
         return price
 
 
-options = Options()
-options.headless = False
-options.add_argument("--window-size=12,1200")
-# options.add_argument('start-maximized')
-driver = webdriver.Chrome(options=options, executable_path=r'.\chromedriver.exe')
-driver.get(url)
-code=driver.find_element_by_id("det-code").text
-habitacion=driver.find_element_by_id("det-nb-bed").text
-baño=driver.find_element_by_id("det-nb-bath").text
-superficie=driver.find_element_by_id("det-area").text
-venta=parsePrice(driver.find_element_by_id("det-venta-price").text)
-renta=parsePrice(driver.find_element_by_id("det-arriendo-price").text)
-
-driver.quit()
+file_dir = os.path.dirname((os.path.abspath(__file__)))
+init_Page=input('Enter web page url:')
+page_number= inputNumber('Enter number of pages to scrap:')
+urls= automateNav(init_Page,page_number)
+df=automateNav(init_Page,page_number)
+print('creating data file...')
+actual_time=datetime.datetime.now()
+file_name=actual_time.strftime("%d-%m-%y_%H%M%S")
+file_path = os.path.join(file_dir, f'{file_name}.xlsx')
+df.to_excel(file_path, header=True, index=False)
+print('--------SCRAP FINISHED-------')
