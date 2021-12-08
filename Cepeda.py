@@ -12,7 +12,8 @@ import random
 
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-url="https://www.cepedaycia.com/inmuebles/"
+url="https://www.cepedaycia.com/inmueble/?Inmueble=5919"
+
 def automateNav(initialPage,page_number=1):
     webLinks=[]
     options = Options()
@@ -47,10 +48,26 @@ def automateNav(initialPage,page_number=1):
     
     driver.quit()
     return webLinks
-weblinhks=automateNav(url,3)
+
+def parsePrice(price):
+    if '$' in price:
+        value=price.split('$')
+        return value[-1]
+    else:
+        return price
 
 
-# page = requests.get(url)
-# soup = BeautifulSoup(page.content, "html.parser") #parsing the request
-# elements=soup.find_all(class_="hits")
+options = Options()
+options.headless = False
+options.add_argument("--window-size=12,1200")
+# options.add_argument('start-maximized')
+driver = webdriver.Chrome(options=options, executable_path=r'.\chromedriver.exe')
+driver.get(url)
+code=driver.find_element_by_id("det-code").text
+habitacion=driver.find_element_by_id("det-nb-bed").text
+baño=driver.find_element_by_id("det-nb-bath").text
+superficie=driver.find_element_by_id("det-area").text
+venta=parsePrice(driver.find_element_by_id("det-venta-price").text)
+renta=parsePrice(driver.find_element_by_id("det-arriendo-price").text)
 
+driver.quit()
