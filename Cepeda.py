@@ -7,10 +7,14 @@ Created on Tue Dec  6 20:09:22 2021
 import os
 import datetime
 import random
+from bs4 import BeautifulSoup
+import requests
+import json
 import pandas as pd
 import time
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+
 
 dataColumns=['codigo','ubicacion','habitaciones','baños','superficie','Precio de Venta','Precio de Renta','latitud','longitud','url']
 
@@ -25,7 +29,13 @@ def automateNav(initialPage,page_number=1):
         superficie=driver.find_element_by_id("det-area").text
         venta=parsePrice(driver.find_element_by_id("det-venta-price").text)
         renta=parsePrice(driver.find_element_by_id("det-arriendo-price").text)
-        info=[code,location,bed,bath,superficie,venta,renta]
+        key="API-KEY"
+        response = requests.get(f'https://maps.googleapis.com/maps/api/geocode/json?address={location}&key={key}')
+        resp_json_payload = response.json()
+        lat=resp_json_payload['results'][0]['geometry']['location']['lat']
+        long=resp_json_payload['results'][0]['geometry']['location']['lng']
+        info=[code,location,bed,bath,superficie,venta,renta,lat,long]
+
         return info
 
     webLinks=[]
@@ -67,7 +77,7 @@ def automateNav(initialPage,page_number=1):
             print(f"Error retrieving information from {url}")
             continue
 
-        Newdf=pd.DataFrame([information+['lat','lng']+[url]],columns=dataColumns)
+        Newdf=pd.DataFrame([information+[url]],columns=dataColumns)
         df=pd.concat([df,Newdf],axis=0)
     driver.quit()
     return df
