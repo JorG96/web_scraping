@@ -114,7 +114,7 @@ def automateNav(initialPage,page_number=1):
     options.add_argument("--window-size=12,1200")
     # options.add_argument('start-maximized')
     driver = webdriver.Chrome(options=options, executable_path=r'.\chromedriver.exe')
-    driver.maximize_window()
+    driver.minimize_window()
     driver.get(initialPage)
     n=1
     while n<=page_number:
