@@ -31,8 +31,8 @@ def navigate(initialPage,page_number=2):
     links=[]
     options = Options()
     options.headless = False
-
     driver = webdriver.Chrome(options=options, executable_path=r'.\chromedriver.exe')
+    driver.fullscreen_window()
     driver.minimize_window()
     driver.get(initialPage)
     n=1
