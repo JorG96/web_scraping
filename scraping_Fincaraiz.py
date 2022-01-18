@@ -21,20 +21,21 @@ from selenium.webdriver.chrome.options import Options
 def retrieveInfo(linksList,dataColumns):
     if linksList:
         df=pd.DataFrame()
-        print('retrieving information... please wait')
         for url in linksList:
             sleep_time=random.uniform(1.1, 1.8)
-            time.sleep(sleep_time)            
-            page = requests.get(url)
-            soup = BeautifulSoup(page.content, "html.parser") #parsing the request
-            elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
-            if elementScript==None:
-                continue
-            else:
-                data=json.loads(elementScript.text)
-                # retrieve information
-                general_info=list(data['query'].values())
-                try:
+            time.sleep(sleep_time)
+            print(f'retrieving information from {url}... please wait')
+            try:
+                page = requests.get(url)
+                soup = BeautifulSoup(page.content, "html.parser") #parsing the request
+                elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
+                if elementScript==None:
+                    continue
+                else:
+                    data=json.loads(elementScript.text)
+                    # retrieve information
+                    general_info=list(data['query'].values())
+                
                     props=data['props']['pageProps']   
                     
                     stringL=[
@@ -59,11 +60,9 @@ def retrieveInfo(linksList,dataColumns):
                             ]
                     Newdf=pd.DataFrame([general_info+stringL+price+segmentation+location+[url]],columns=dataColumns)
                     df=pd.concat([df,Newdf],axis=0)
-                except:
-                    print(f'information fron {url} could not be retrieved')
-                    continue
-
-
+            except:
+                print(f'information fron {url} could not be retrieved')
+                continue
         return df
     else:
          print("Error: Links not found")
@@ -93,7 +92,7 @@ for n in range(1,page_number+1):
     driver.get(initialPage+r'?pagina='+str(n))
     lnks=driver.find_elements_by_tag_name("a")
     # traverse list
-    for lnk in lnks[1:-15]:
+    for lnk in lnks[1:-16]:
         # get_attribute() to get all href
         webLinks.append(lnk.get_attribute('href'))
 print('links extracted')
