@@ -12,6 +12,8 @@ import requests
 from bs4 import BeautifulSoup
 import json
 import pandas as pd
+import time
+import random
 import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
@@ -21,6 +23,8 @@ def retrieveInfo(linksList,dataColumns):
         df=pd.DataFrame()
         print('retrieving information... please wait')
         for url in linksList:
+            sleep_time=random.uniform(1.1, 1.8)
+            time.sleep(sleep_time)            
             page = requests.get(url)
             soup = BeautifulSoup(page.content, "html.parser") #parsing the request
             elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
@@ -30,29 +34,35 @@ def retrieveInfo(linksList,dataColumns):
                 data=json.loads(elementScript.text)
                 # retrieve information
                 general_info=list(data['query'].values())
-                props=data['props']['pageProps']
-                
-                stringL=[props['address'],
-                        props['description']
-                           ]
-                segmentation=[
-                        props['segmentation']['estrato'],
-                        props['segmentation']['tipo_cliente'],
-                        props['contact']['phones']['call'],
-                        props['client']['firstName'],
-                        props['client']['lastName']
-                    ]
-                price=[
-                       props['area'],
-                       props['price'],
-                       props['priceM2']
-                       ]
-                location=[
-                        props['locations']['lat'],
-                        props['locations']['lng']
+                try:
+                    props=data['props']['pageProps']   
+                    
+                    stringL=[
+                            props['address'],
+                            props['description']
+                               ]
+                    segmentation=[
+                            props['segmentation']['estrato'],
+                            props['segmentation']['tipo_cliente'],
+                            props['contact']['phones']['call'],
+                            props['client']['firstName'],
+                            props['client']['lastName']
                         ]
-                Newdf=pd.DataFrame([general_info+stringL+price+segmentation+location+[url]],columns=dataColumns)
-                df=pd.concat([df,Newdf],axis=0)
+                    price=[
+                           props['area'],
+                           props['price'],
+                           props['priceM2']
+                           ]
+                    location=[
+                            props['locations']['lat'],
+                            props['locations']['lng']
+                            ]
+                    Newdf=pd.DataFrame([general_info+stringL+price+segmentation+location+[url]],columns=dataColumns)
+                    df=pd.concat([df,Newdf],axis=0)
+                except:
+                    print(f'information fron {url} could not be retrieved')
+                    continue
+
 
         return df
     else:
@@ -98,8 +108,8 @@ columnsList=['Titulo','Ubicación','Ciudad','Código',
 
 df=retrieveInfo(webLinks,columnsList)
 print('creating data file...')
-time=datetime.datetime.now()
-file_name=time.strftime("%d-%m-%y_%H%M%S")
+time_now=datetime.datetime.now()
+file_name=time_now.strftime("%d-%m-%y_%H%M%S")
 file_path = os.path.join(file_dir, f'FincaRaiz_{file_name}.xlsx')
 df.to_excel(file_path, header=True, index=False)
 print('--------SCRAPING FINISHED-------')
