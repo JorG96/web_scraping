@@ -18,6 +18,16 @@ import datetime
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 
+
+user_agent_list = [
+'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Safari/605.1.15',
+'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:77.0) Gecko/20100101 Firefox/77.0',
+'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
+'Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:77.0) Gecko/20100101 Firefox/77.0',
+'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
+]
+
+
 def retrieveInfo(linksList,dataColumns):
     if linksList:
         df=pd.DataFrame()
@@ -26,7 +36,9 @@ def retrieveInfo(linksList,dataColumns):
             time.sleep(sleep_time)
             print(f'retrieving information from {url}... please wait')
             try:
-                page = requests.get(url)
+                user_agent= random.choice(user_agent_list)
+                headers = {'User-Agent': user_agent}
+                page = requests.get(url,headers=headers)
                 soup = BeautifulSoup(page.content, "html.parser") #parsing the request
                 elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
                 if elementScript==None:
@@ -111,4 +123,4 @@ time_now=datetime.datetime.now()
 file_name=time_now.strftime("%d-%m-%y_%H%M%S")
 file_path = os.path.join(file_dir, f'FincaRaiz_{file_name}.xlsx')
 df.to_excel(file_path, header=True, index=False)
-print('--------SCRAPING FINISHED-------')
+print('--------FINISHED-------')
