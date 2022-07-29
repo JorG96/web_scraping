@@ -1,23 +1,20 @@
-#!python
 # -*- coding: utf-8 -*-
 """
-Created on Wed Sep 29 13:27:47 2021
+Created on Fri Jul  8 14:21:25 2022
 
-@author: ASUS
+@author: Jorge.Camacho1
 """
-
 
 import os
 import requests
-from bs4 import BeautifulSoup
 import json
 import pandas as pd
 import time
 import random
 import datetime
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
-
 
 user_agent_list = [
 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_5) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.1.1 Safari/605.1.15',
@@ -27,12 +24,37 @@ user_agent_list = [
 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/83.0.4103.97 Safari/537.36',
 ]
 
+def inputNumber(message):
+  while True:
+    try:
+       userInput = int(input(message))       
+    except ValueError:
+       print("invalid page number! Try again.")
+       continue
+    else:
+       return userInput 
+
+
+def getURL(page_number):
+    webLinks=[]
+    for n in range(1,page_number+1):
+        print(f'extracting links from page {n}...' )
+        # Copy and Paste principal page url
+        driver.get(initialPage+r'?pagina='+str(n))
+        urls=driver.find_elements_by_xpath("/html/body/div/div[1]/div[3]/div/div/div[3]/div/article/a"
+                                           )
+        # traverse list
+        for url in urls:
+            # get_attribute() to get all href
+            webLinks.append(url.get_attribute('href'))
+    print('links extracted')
+    return webLinks
+
 
 def retrieveInfo(linksList,dataColumns):
     if linksList:
         df=pd.DataFrame()
         for url in linksList:
-            elementScript=None
             sleep_time=random.uniform(0.98, 1.37)
             time.sleep(sleep_time)
             print(f'retrieving information from {url}... please wait')
@@ -73,56 +95,24 @@ def retrieveInfo(linksList,dataColumns):
                             ]
                     Newdf=pd.DataFrame([general_info+stringL+price+segmentation+location+[url]],columns=dataColumns)
                     df=pd.concat([df,Newdf],axis=0)
-
             except:
                 print(f'information fron {url} could not be retrieved')
                 continue
         return df
     else:
          print("Error: Links not found")
-         
-def inputNumber(message):
-  while True:
-    try:
-       userInput = int(input(message))       
-    except ValueError:
-       print("invalid page number! Try again.")
-       continue
-    else:
-       return userInput 
-       break 
-#Options for chromedriver configurations
-options = Options()
-options.headless = True
-options.add_argument("--window-size=12,1200")
-initialPage=input('Enter web page url:')
-page_number=inputNumber('Enter number of pages to scrap:')
-webLinks=[]
-# Change chromedriver path to your own
-driver = webdriver.Chrome(options=options, executable_path=r'C:\PythonScripts\chromedriver.exe')
-for n in range(1,page_number+1):
-    print(f'extracting links from page {n}...' )
-    # Copy and Paste principal page url
-    driver.get(initialPage+r'?pagina='+str(n))
-    lnks=driver.find_elements_by_tag_name("a")
-    # traverse list
-    for lnk in lnks[1:-16]:
-        # get_attribute() to get all href
-        webLinks.append(lnk.get_attribute('href'))
-print('links extracted')
-driver.quit()
 
-file_dir = os.path.dirname((os.path.abspath(__file__)))
-columnsList=['Titulo','Ubicación','Ciudad','Código',
-           'Dirección','Descripción','Área','Precio',
-           'PrecioM2','estrato','Tipo de Cliente', 'teléfono',
-           'nombre_cliente','apellido_cliente','latitud','longitud',
-           'link']
 
-df=retrieveInfo(webLinks,columnsList)
-print('creating data file...')
-time_now=datetime.datetime.now()
-file_name=time_now.strftime("%d-%m-%y_%H%M%S")
-file_path = os.path.join(file_dir, f'FincaRaiz_{file_name}.xlsx')
-df.to_excel(file_path, header=True, index=False)
-print('--------FINISHED-------')
+if __name__=='__main__':
+    #Options for chromedriver configurations
+    options = Options()
+    options.headless = True
+    options.add_argument("--window-size=12,1200")
+    initialPage=input('Enter web page url:')
+    page_number=inputNumber('Enter number of pages to scrap:')
+    # Chromedriver path
+    driver = webdriver.Chrome(options=options, executable_path=r'C:\PythonScripts\chromedriver.exe')
+    driver.set_page_load_timeout(5)
+    urls=getURL(page_number)
+    
+    driver.quit()
