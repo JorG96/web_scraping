@@ -36,19 +36,18 @@ def inputNumber(message):
 
 
 def getURL(page_number):
-    webLinks=[]
     for n in range(1,page_number+1):
         print(f'extracting links from page {n}...' )
         # Copy and Paste principal page url
         driver.get(initialPage+r'?pagina='+str(n))
         urls=driver.find_elements_by_xpath("/html/body/div/div[1]/div[3]/div/div/div[3]/div/article/a"
                                            )
-        # traverse list
-        for url in urls:
+        with open("./URL.csv",mode="a") as file:
+            for url in urls[1:-16]:
             # get_attribute() to get all href
-            webLinks.append(url.get_attribute('href'))
+                file.write(url.get_attribute('href'))
+                file.write("\n")
     print('links extracted')
-    return webLinks
 
 
 def retrieveInfo(linksList,dataColumns):
@@ -102,17 +101,64 @@ def retrieveInfo(linksList,dataColumns):
     else:
          print("Error: Links not found")
 
-
+def extractInfo(file_path):
+    with open(file_path, mode="r") as url_file:
+        for url in url_file:
+            sleep_time=random.uniform(0.98, 1.35)
+            time.sleep(sleep_time)
+            print(f'retrieving information from {url}...')
+            try:
+                #cambiar el User Agent para realizar el request
+                user_agent= random.choice(user_agent_list)
+                headers = {'User-Agent': user_agent}
+                #enviar el request con con los headers configurados
+                page = requests.get(url,headers=headers,timeout=4)
+                #parsear el contenido html del request
+                soup = BeautifulSoup(page.content, "html.parser") 
+                elementScript=soup.find("script",{"id":"__NEXT_DATA__"})
+                if elementScript==None:
+                    continue
+                else:
+                    with open("./RawData.json",mode="a") as data_file:
+                        data_file.write(elementScript.text)
+                        data_file.write("\n")
+            except:
+                print(f'information from {url} could not be extracted')
+                continue
+        print("information extraction finished")
+        
+def jsonToCSV(json_file_path):
+    Newdf=pd.DataFrame()
+    with open(json_file_path, mode="r") as json_file:
+        print("transformation started")
+        for element in json_file:
+            try:
+                element_data=json.loads(element)
+                if element_data['props']['pageProps']==404:
+                    continue
+                else:
+                    df=pd.json_normalize(element_data['props']['pageProps'])
+                    Newdf=pd.concat([Newdf,df],axis=0)
+                    
+            except:
+                print("element couldn't be loaded")
+    return Newdf
+    
 if __name__=='__main__':
-    #Options for chromedriver configurations
+#Opciones de configuracion para el driver web
     options = Options()
     options.headless = True
     options.add_argument("--window-size=12,1200")
     initialPage=input('Enter web page url:')
     page_number=inputNumber('Enter number of pages to scrap:')
-    # Chromedriver path
+# ruta de Chromedriver
     driver = webdriver.Chrome(options=options, executable_path=r'C:\PythonScripts\chromedriver.exe')
-    driver.set_page_load_timeout(5)
-    urls=getURL(page_number)
-    
+    # driver.set_page_load_timeout(20)
+# Obtener csv con todos los enlaces por inmueble.
+    # getURL(page_number)
+# Cerrar el driver
     driver.quit()
+# Extraer informacion en formato json del codigo fuente.
+    # extractInfo(file_path="url2.csv")
+    df=jsonToCSV("./RawData.json")
+    df.to_csv("./MercadoBogota.csv",index=False)
